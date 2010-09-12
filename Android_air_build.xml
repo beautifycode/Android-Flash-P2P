@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- *******************************************************************************************************
+	
+	based on : Stephan Partzsch
+	website	 : http://www.powerflasher.de
+	date	 : 05.10.2007
+	
+	edit by  : Marvin Blase
+	website  : http://www.beautifycode.com
+	date	 : 14.08.2010
+	
+	edit by  : Karl Freeman
+	website  : http://www.flashlounge.net
+	date	 : 19.08.2010
+	
+	This Build-file is working with FlexSDK 4.1.0.16076 and AIR 2.5
+	
+******************************************************************************************************** -->
+
+<project name="Android Air Build">
+	
+	<!-- *******************************************************************************************************
+	
+	Properties within this section need to be edited based on your projects folder structure and project info	
+	
+	******************************************************************************************************** -->
+	
+	<!-- Project properties -->
+	<property name="app_name" value="Controller" />
+	<property name="app_package" value="" />
+	<property name="app_root_dir" value="." />
+	<property name="app_type" value="as" />
+	<property name="assets_dir_name" value="assets" />
+	<property name="libs_dir_name" value="libs" />
+	
+	<!-- Path to Flex 4.1 SDK -->
+	<property name="sdk_dir" value="/Users/marvin/Workspace/libs/flex_sdk_4.1.0.16076_AIR25" />
+	
+	<!-- Path to Android SDK  -->
+	<property name="android_sdk" value="/Users/marvin/Workspace/libs/android-sdk-mac_x86" />
+	
+	<!-- Certificate properties -->
+	<property name="certificate_name" value="exampleCert" />
+	<property name="certificate_pw" value="examplePW" />
+
+	<!-- Required for creating a new certificate -->
+	<property name="cert_name" value="exampleCert" />
+	<property name="password" value="examplePW" />
+	<property name="org_name" value="exampleOrg" />
+	<property name="org_unit" value="exampleUnit" />
+	<property name="country" value="EN" />
+	<property name="key_type" value="2048-RSA" />
+	<property name="cert_loc" location="${app_root_dir}/${assets_dir_name}/settings" />
+	
+	<!-- *******************************************************************************************************
+	
+	******************************************************************************************************** -->
+	
+	
+	<!-- Air properties -->
+	<property name="mxmlc" value="${sdk_dir}/lib/mxmlc.jar" />
+	<property name="adt" value="${sdk_dir}/lib/adt.jar" />	
+	<!-- If your on a mac this can be left, if your on a pc this needs a .exe on the end to work properly -->
+	<property name="adl" value="${sdk_dir}/bin/adl" />
+	
+	<!-- Path to Air emulator runtime zip  -->
+	<property name="emulator_runtime_zip" value="${app_root_dir}/runtimes/Runtime_Emulator_Froyo_20100909.apk.zip" />
+	
+	<!-- Path to Air device runtime zip  -->
+	<property name="device_runtime_zip" value="${app_root_dir}/runtimes/Runtime_Emulator_Froyo_20100909.apk.zip" />
+	
+	<!-- Android properties -->
+	<property name="android_emulator" value="${android_sdk}/tools/emulator" />	
+	<property name="android_manager" value="${android_sdk}/tools/android" />	
+	<property name="adb" value="${android_sdk}/tools/adb" />	
+
+	<!-- The following can remain unchanged -->
+	<property name="compilation" value="${app_name}.swf" />
+	<property name="air_file" value="${app_name}.air" />
+	<property name="android_file" value="${app_name}.apk" />
+	<property name="app_descriptor" value="${app_name}-app.xml" />
+	<property name="main_source" value="${app_root_dir}/src/${app_package}${app_name}.${app_type}" />
+	<property name="certificate" value="${app_root_dir}/${assets_dir_name}/settings/${certificate_name}.pfx" />
+	<property name="debug_dir" location="${app_root_dir}/debug" />
+	<property name="publish_dir" location="${app_root_dir}/publish" />
+	<property name="build_dir" location="${app_root_dir}/build" />
+	<property name="assets_dir" location="${app_root_dir}/${assets_dir_name}" />
+	<property name="libs_dir" location="${app_root_dir}/${libs_dir_name}" />
+
+
+	<!-- Clean existing directories -->
+	<target name="Air - 1. Cleanup Directories">
+		<delete dir="${debug_dir}" />
+		<delete dir="${build_dir}" />
+		<delete dir="${publish_dir}" />
+	</target>
+
+
+	<!-- Create required directories -->
+	<target name="Air - 2. Build New Directories"  depends="Air - 1. Cleanup Directories">
+		<mkdir dir="${debug_dir}" />
+		<mkdir dir="${build_dir}" />
+		<mkdir dir="${publish_dir}" />
+	</target>
+
+	<!-- Compile SWF to build-directory for packaging -->
+	<target name="Air - 3. Compile SWF" depends="Air - 2. Build New Directories">		
+		<java jar="${mxmlc}" fork="true" failonerror="true">
+			<arg value="-debug=false" />
+			<arg value="+flexlib=${sdk_dir}/frameworks" />
+			<arg value="+configname=air" />
+			<arg value="-include-libraries=${libs_dir}" />
+			<arg value="-source-path=${app_root_dir}/src/" />
+			<arg value="-file-specs=${main_source}" />
+			<arg value="-output=${build_dir}/${compilation}" />
+		</java>
+	</target>
+
+	<!-- Compile SWF to debug directory and copy assets to it -->
+	<target name="Air - 4. Compile SWF ( Debug )" depends="Air - 2. Build New Directories">
+		<java jar="${mxmlc}" fork="true" failonerror="true">
+			<arg value="-debug=true" />
+			<arg value="+flexlib=${sdk_dir}/frameworks" />
+			<arg value="+configname=air" />
+			<arg value="-include-libraries=${libs_dir}" />
+			<arg value="-source-path=${app_root_dir}/src/" />
+			<arg value="-file-specs=${main_source}" />
+			<arg value="-output=${debug_dir}/${compilation}" />
+		</java>
+		<copy todir="${debug_dir}">
+			<fileset dir="${assets_dir}" />
+		</copy>
+	</target>
+
+	<!-- Show application without packaging -->
+	<target name="Air - 5. Test Application" depends="Air - 3. Compile SWF">
+		<exec executable="${adl}">
+			<arg value="${app_descriptor}" />
+			<arg value="${build_dir}" />
+		</exec>
+	</target>
+	
+	<!-- Show application without packaging -->
+	<target name="Air - 6. Test Application ( Debug )" depends="Air - 4. Compile SWF ( Debug )">
+		<exec executable="${adl}">
+			<arg value="${app_descriptor}" />
+			<arg value="${debug_dir}" />
+		</exec>
+	</target>
+
+	<!-- Packaging the application to an air-file & save it in the publish directory -->
+	<target name="Air - 7. Package Air Application" depends="Air - 3. Compile SWF">
+		<java jar="${adt}" fork="true" failonerror="true">
+			<arg value="-package" />
+			<arg value="-storetype" />
+			<arg value="pkcs12" />
+			<arg value="-keystore" />
+			<arg value="${certificate}" />
+			<arg value="-storepass" />
+			<arg value="${certificate_pw}" />
+
+			<arg value="${publish_dir}/${air_file}" />
+			<arg value="${app_descriptor}" />
+			<arg value="-C" />
+			<arg value="${build_dir}/" />
+			<arg value="${compilation}" />
+
+			<arg value="-C" />
+			<arg value="${assets_dir}" />
+			<arg value="icons" />
+		</java>
+	</target>
+
+	<!-- Creating a digital ID certificate -->
+	<target name="Air - 8. Create New Certificate">
+		<java jar="${adt}" fork="true">
+			<arg value="-certificate" />
+			<arg value="-cn" />
+			<arg value="${cert_name}" />
+			<arg value="-ou" />
+			<arg value="${org_unit}" />
+			<arg value="-o" />
+			<arg value="${org_name}" />
+			<arg value="-c" />
+			<arg value="${country}" />
+			<arg value="${key_type}" />
+			<arg value="${cert_loc}/${cert_name}.pfx" />
+			<arg value="${password}" />
+		</java>
+	</target>
+
+		
+	<!-- Get the android manager -->
+    <target name="Android - 1. Get Manager" >
+        <exec executable="${android_manager}"/>
+	</target>
+	
+	<!-- Print the available android devices -->
+    <target name="Android - 2. Print Devices">
+    	<exec executable="${adb}">
+        	<arg line="devices"/>
+        </exec>
+	</target>
+	
+	<!-- Packaging the application to an apk-file & save it in the publish directory -->
+	<target name="Android - 3. Package Application" depends="Air - 3. Compile SWF">
+		<java jar="${adt}" fork="true" failonerror="true">
+			<arg value="-package" />
+			
+			<arg value="-target" />
+			<arg value="apk" />
+						
+			<arg value="-storetype" />
+			<arg value="pkcs12" />
+			<arg value="-keystore" />
+			<arg value="${certificate}" />
+			<arg value="-storepass" />
+			<arg value="${certificate_pw}" />
+
+			<arg value="${publish_dir}/${android_file}" />
+			<arg value="${app_descriptor}" />
+			<arg value="-C" />
+			<arg value="${build_dir}/" />
+			<arg value="${compilation}" />
+
+			<arg value="-C" />
+			<arg value="${assets_dir}" />
+			<arg value="icons" />
+		</java>
+	</target>
+	
+	<!-- Packaging the application to an apk-file & save it in the publish directory -->
+	<target name="Android - 4. Package Application ( Debug )" depends="Air - 4. Compile SWF ( Debug )">
+		<java jar="${adt}" fork="true" failonerror="true">
+			<arg value="-package" />
+			
+			<arg value="-target" />
+			<arg value="apk-debug" />
+						
+			<arg value="-storetype" />
+			<arg value="pkcs12" />
+			<arg value="-keystore" />
+			<arg value="${certificate}" />
+			<arg value="-storepass" />
+			<arg value="${certificate_pw}" />
+
+			<arg value="${publish_dir}/${android_file}" />
+			<arg value="${app_descriptor}" />
+			<arg value="-C" />
+			<arg value="${debug_dir}/" />
+			<arg value="${compilation}" />
+
+			<arg value="-C" />
+			<arg value="${assets_dir}" />
+			<arg value="icons" />
+		</java>
+	</target>
+	
+	<!-- Installing the published application on to the emulator -->
+	<target name="Android - 5. Install Application On Emulator" depends="Android - 3. Package Application" >
+		<exec executable="${adb}">
+				<arg line="-e"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="${app_root_dir}/publish/${android_file}"/>
+		</exec>
+	</target>
+	
+	<!-- Installing the published application on to the emulator with debug on -->
+	<target name="Android - 6. Install Application On Emulator ( Debug )" depends="Android - 4. Package Application ( Debug )" >
+		<exec executable="${adb}">
+				<arg line="-e"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="${app_root_dir}/publish/${android_file}"/>
+		</exec>
+	</target>
+	
+	<!-- Installing the published application on to your device -->
+	<target name="Android - 7. Install Application On Device" depends="Android - 3. Package Application" >
+		<exec executable="${adb}">
+				<arg line="-d"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="${app_root_dir}/publish/${android_file}"/>
+		</exec>
+	</target>
+	
+	<!-- Installing the published application on to your device with debug on -->	
+	<target name="Android - 8. Install Application On Device ( Debug )" depends="Android - 4. Package Application ( Debug )" >
+		<exec executable="${adb}">
+				<arg line="-d"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="${app_root_dir}/publish/${android_file}"/>
+		</exec>
+	</target>
+	
+	<!-- Installing the emulator runtime in the runtimes folder on to the emulator -->	
+	<target name="Util - 1. Install Air On Emulator">
+		<exec executable="${adb}">
+				<arg line="-e"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="'${emulator_runtime_zip}'"/>
+		</exec>
+	</target>
+	<!-- Installing the emulator runtime in the runtimes folder on to your device -->	
+	<target name="Util - 2. Install Air On Device">
+		<exec executable="${adb}">
+				<arg line="-d"/>
+				<arg line="install"/>
+				<arg line="-r"/>
+				<arg line="'${device_runtime_zip}'"/>
+		</exec>
+	</target>
+
+</project>
