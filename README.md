@@ -5,7 +5,7 @@ __Marvin Blase__
 
 
 ## About
-Creates a P2P Connection between an Android Device and any Client running the client.swf.
+Creates a P2P Connection via Stratus between anyone who is running the Client.swf and someone who is starting this Android App on his mobile. This means you can exchange data in realtime without Wi-Fi, Bluetooth or the like. Comes especially handy in using it for remote stuff or as HID.
 
 ## License
 Copyright (c) <2010> <copyright holders>
