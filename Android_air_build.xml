@@ -28,7 +28,7 @@
 	
 	<!-- Project properties -->
 	<property name="app_name" value="Controller" />
-	<property name="app_package" value="" />
+	<property name="app_package" value="com/beautifycode/android/p2p/sliderexample/" />
 	<property name="app_root_dir" value="." />
 	<property name="app_type" value="as" />
 	<property name="assets_dir_name" value="assets" />
